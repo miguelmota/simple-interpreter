@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/miguelmota/migscript/interpreter"
+	"github.com/miguelmota/simple-interpreter/interpreter"
 )
 
 func run(text string, expected int64) {

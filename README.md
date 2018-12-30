@@ -1,6 +1,6 @@
-# migscript
+# simple interpreter
 
-> Learning exercise
+> Learning exercise of building a simple interprter in Go
 
 ## Resources
 
