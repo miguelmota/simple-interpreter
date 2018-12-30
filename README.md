@@ -1,6 +1,6 @@
 # simple interpreter
 
-> Learning exercise of building a simple interprter in Go
+> Learning exercise of building a simple interpreter in Go
 
 ## Resources
 

@@ -132,6 +132,14 @@ func (i *Interpreter) Eat(tokenKind string) {
 	}
 }
 
+// Term ...
+func (i *Interpreter) Term() interface{} {
+	// return an INTEGER token value
+	token := i.CurrentToken
+	i.Eat(Integer)
+	return token.Value
+}
+
 // Expr ...
 // expr -> INTEGER PLUS INTEGER
 // expr -> INTEGER MINUS INTEGER
@@ -139,36 +147,18 @@ func (i *Interpreter) Expr() interface{} {
 	// set current token to the first token taken from the input
 	i.CurrentToken = i.GetNextToken()
 
-	// we expect the current token to be a single digit integer
-	left := i.CurrentToken
-	i.Eat(Integer)
-
-	// we expect the current token to be a '+' token
-	op := i.CurrentToken
-	if op.Kind == Plus {
-		i.Eat(Plus)
-	} else {
-		i.Eat(Minus)
+	result := toInteger(i.Term())
+	for i.CurrentToken.Kind == Plus || i.CurrentToken.Kind == Minus {
+		token := i.CurrentToken
+		if token.Kind == Plus {
+			i.Eat(Plus)
+			result = result + toInteger(i.Term())
+		} else if token.Kind == Minus {
+			i.Eat(Minus)
+			result = result - toInteger(i.Term())
+		}
 	}
 
-	// we expect the current token to be a single digit integer
-	right := i.CurrentToken
-	i.Eat(Integer)
-	// after the above call the self.current_token is set to
-	// EOF token
-
-	// at this point INTEGER PLUS INTEGER sequence of tokens
-	// has been successfully found and the method can just
-	// return the result of adding two integers, thus
-	// effectively interpreting client input
-	a := toInteger(left.Value)
-	b := toInteger(right.Value)
-	var result interface{}
-	if op.Kind == Plus {
-		result = a + b
-	} else {
-		result = a - b
-	}
 	return result
 }
 
