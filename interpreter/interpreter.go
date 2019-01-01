@@ -14,9 +14,11 @@ type Interpreter struct {
 
 // NewInterpreter ...
 func NewInterpreter(text string) *Interpreter {
+	lexer := NewLexer(text)
+	currentToken := lexer.GetNextToken()
 	return &Interpreter{
-		lexer:        NewLexer(text),
-		CurrentToken: nil,
+		lexer:        lexer,
+		CurrentToken: currentToken,
 	}
 }
 
@@ -33,36 +35,58 @@ func (i *Interpreter) Eat(tokenKind string) {
 	}
 }
 
-// Term ...
-func (i *Interpreter) Term() interface{} {
-	// return an INTEGER token value
+// Factor ...
+func (i *Interpreter) Factor() interface{} {
+	// factor : INTEGER
 	token := i.CurrentToken
 	i.Eat(Integer)
 	return token.Value
+}
+
+// Term ...
+func (i *Interpreter) Term() interface{} {
+	// term : factor ((MUL | DIV) factor)*
+	result := i.Factor()
+
+	for i.CurrentToken.Kind == Mul || i.CurrentToken.Kind == Div {
+		token := i.CurrentToken
+		if token.Kind == Mul {
+			i.Eat(Mul)
+			result = toInteger(result) * toInteger(i.Factor())
+		} else if token.Kind == Div {
+			i.Eat(Div)
+			result = toInteger(result) / toInteger(i.Factor())
+		}
+	}
+
+	return result
 }
 
 // Expr ...
 // expr -> INTEGER PLUS INTEGER
 // expr -> INTEGER MINUS INTEGER
 func (i *Interpreter) Expr() interface{} {
-	// set current token to the first token taken from the input
-	i.CurrentToken = i.lexer.GetNextToken()
+	/*
+		 Arithmetic expression parser / interpreter.
 
-	result := toInteger(i.Term())
-	for i.CurrentToken.Kind == Plus || i.CurrentToken.Kind == Minus || i.CurrentToken.Kind == Mul || i.CurrentToken.Kind == Div {
+			calc>  14 + 2 * 3 - 6 / 2
+			17
+
+			expr   : term ((PLUS | MINUS) term)*
+			term   : factor ((MUL | DIV) factor)*
+			factor : INTEGER
+	*/
+
+	result := i.Term()
+
+	for i.CurrentToken.Kind == Plus || i.CurrentToken.Kind == Minus {
 		token := i.CurrentToken
 		if token.Kind == Plus {
 			i.Eat(Plus)
-			result = result + toInteger(i.Term())
+			result = toInteger(result) + toInteger(i.Term())
 		} else if token.Kind == Minus {
 			i.Eat(Minus)
-			result = result - toInteger(i.Term())
-		} else if token.Kind == Mul {
-			i.Eat(Mul)
-			result = result * toInteger(i.Term())
-		} else if token.Kind == Div {
-			i.Eat(Div)
-			result = result / toInteger(i.Term())
+			result = toInteger(result) - toInteger(i.Term())
 		}
 	}
 
